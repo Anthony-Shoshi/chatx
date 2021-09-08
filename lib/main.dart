@@ -1,3 +1,4 @@
+import 'package:chatx/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -106,7 +107,10 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: Icon(
+          Icons.add,
+          color: PRIMARY_COLOR,
+        ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
