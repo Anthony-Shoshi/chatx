@@ -42,22 +42,22 @@ class SharedPrefManager {
     return prefs.getString(userIDKey) ?? "";
   }
 
-  getUserName() async {
+  Future<String?> getUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(userNameKey);
   }
 
-  getUserDisplayName() async {
+  Future<String?> getUserDisplayName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(userDisplayNameKey);
   }
 
-  getUserEmail() async {
+  Future<String?> getUserEmail() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(userEmailKey);
   }
 
-  getUserProfile() async {
+  Future<String?> getUserProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(userProfileKey);
   }

@@ -29,7 +29,9 @@ class Authentication {
     User? userDetails = result.user;
     if (result != null) {
       SharedPrefManager().saveUserID(userDetails!.uid.toString());
-      SharedPrefManager().saveUserEmail(userDetails.displayName.toString());
+      SharedPrefManager()
+          .saveUserName(userDetails.email!.replaceAll("@gmail.com", ""));
+      SharedPrefManager().saveUserEmail(userDetails.email.toString());
       SharedPrefManager()
           .saveUserDisplayName(userDetails.displayName.toString());
       SharedPrefManager().saveUserProfile(userDetails.photoURL.toString());
@@ -43,7 +45,7 @@ class Authentication {
       };
 
       DatabaseManager().storeUserInfo(userDetails.uid, userInfo).then((value) {
-        Get.to(() => HomeScreen());
+        Get.offAll(() => HomeScreen());
       });
     }
   }

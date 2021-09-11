@@ -7,4 +7,67 @@ class DatabaseManager {
         .doc(userID)
         .set(userInfo);
   }
+
+  Future<Stream<QuerySnapshot>> getRecommendedUsers(String? myUserName) async {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('user_name', isNotEqualTo: myUserName)
+        .snapshots();
+  }
+
+  Future<Stream<QuerySnapshot>> getCurrentMessages(String? myUserName) async {
+    return FirebaseFirestore.instance
+        .collection('chatrooms')
+        .orderBy('lastMessageTime', descending: true)
+        .where('users', arrayContains: myUserName)
+        .snapshots();
+  }
+
+  Future<Stream<QuerySnapshot>> getMessages(String? chatRoomID) async {
+    return FirebaseFirestore.instance
+        .collection('chatrooms')
+        .doc(chatRoomID)
+        .collection('chats')
+        .orderBy('message_time', descending: true)
+        .snapshots();
+  }
+
+  Future<QuerySnapshot> getUserInfo(String userName) async {
+    return await FirebaseFirestore.instance
+        .collection('users')
+        .where('user_name', isEqualTo: userName)
+        .get();
+  }
+
+  Future addMessage(String? chatRoomID, String messageID,
+      Map<String, dynamic> messageInfo) async {
+    FirebaseFirestore.instance
+        .collection('chatrooms')
+        .doc(chatRoomID)
+        .collection('chats')
+        .doc(messageID)
+        .set(messageInfo);
+  }
+
+  Future updateLastMessage(String? chatRoomID, lastMessageInfo) async {
+    FirebaseFirestore.instance
+        .collection('chatrooms')
+        .doc(chatRoomID)
+        .update(lastMessageInfo);
+  }
+
+  Future createChatRoom(
+      String? chatRoomID, Map<String, dynamic> chatRoomInfo) async {
+    var snapshot = await FirebaseFirestore.instance
+        .collection('chatrooms')
+        .doc(chatRoomID)
+        .get();
+
+    if (!snapshot.exists) {
+      FirebaseFirestore.instance
+          .collection('chatrooms')
+          .doc(chatRoomID)
+          .set(chatRoomInfo);
+    }
+  }
 }

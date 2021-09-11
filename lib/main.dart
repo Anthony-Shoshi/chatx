@@ -1,3 +1,4 @@
+import 'package:chatx/constants/colors.dart';
 import 'package:chatx/constants/strings.dart';
 import 'package:chatx/screens/splash.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: APP_NAME,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: PRIMARY_COLOR,
       ),
       home: SplashScreen(),
     );

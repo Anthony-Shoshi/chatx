@@ -17,15 +17,14 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   String myid = "";
-  String myIL = "";
 
   void gotoNext() async {
     myid = await SharedPrefManager().getUserID();
-    Timer(Duration(seconds: 3), () async {
+    Timer(Duration(seconds: 2), () async {
       if (myid != "") {
-        Get.to(() => HomeScreen());
+        Get.offAll(() => HomeScreen());
       } else {
-        Get.to(() => SignUpScreen());
+        Get.offAll(() => SignUpScreen());
       }
     });
   }
@@ -50,52 +49,41 @@ class _SplashScreenState extends State<SplashScreen> {
           ],
         ),
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          children: [
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.only(top: AppSizes.font30),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: screenWidth / 4,
-                      width: screenWidth / 4,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          fit: BoxFit.fitWidth,
-                          image: AssetImage('assets/images/test.png'),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 25,
-                    ),
-                    Text(
-                      "ChatX",
-                      style: GoogleFonts.roboto(
-                        textStyle: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: AppSizes.font22,
-                        ),
-                      ),
-                    ),
-                  ],
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              children: [
+                Spacer(
+                  flex: 1,
                 ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 50.0),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
+                Image.asset(
+                  'assets/images/test.png',
+                  height: screenWidth / 4,
+                ),
+                SizedBox(
+                  height: AppSizes.font22,
+                ),
+                Text(
+                  "ChatX",
+                  style: GoogleFonts.roboto(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppSizes.font22,
+                    ),
+                  ),
+                ),
+                Spacer(
+                  flex: 2,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 50.0),
                   child: CircularProgressIndicator(),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
