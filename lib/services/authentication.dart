@@ -29,8 +29,12 @@ class Authentication {
     User? userDetails = result.user;
     if (result != null) {
       SharedPrefManager().saveUserID(userDetails!.uid.toString());
-      SharedPrefManager()
-          .saveUserName(userDetails.email!.replaceAll("@gmail.com", ""));
+      SharedPrefManager().saveUserName(
+        userDetails.email!
+            .replaceAll("@gmail.com", "")
+            .replaceAll("@", "_")
+            .replaceAll(".", "_"),
+      );
       SharedPrefManager().saveUserEmail(userDetails.email.toString());
       SharedPrefManager()
           .saveUserDisplayName(userDetails.displayName.toString());
@@ -40,7 +44,10 @@ class Authentication {
         "name": userDetails.displayName,
         "email": userDetails.email,
         "user_id": userDetails.uid,
-        "user_name": userDetails.email!.replaceAll("@gmail.com", ""),
+        "user_name": userDetails.email!
+            .replaceAll("@gmail.com", "")
+            .replaceAll("@", "_")
+            .replaceAll(".", "_"),
         "profile_url": userDetails.photoURL,
       };
 

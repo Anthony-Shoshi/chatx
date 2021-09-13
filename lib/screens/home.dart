@@ -24,6 +24,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? myEmail;
   String? myProfile;
   String? chatRoomID;
+  String? chatWithName;
+  String? chatWithUserName;
+  String? chatWithUserProfile;
 
   @override
   void initState() {
@@ -47,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   getMyInfo() async {
+    myName = await SharedPrefManager().getUserDisplayName();
     myUserName = await SharedPrefManager().getUserName();
     myEmail = await SharedPrefManager().getUserEmail();
     myProfile = await SharedPrefManager().getUserProfile();
@@ -113,11 +117,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                       (snapshot.data as QuerySnapshot)
                                           .docs[index];
                                   return GestureDetector(
-                                    onTap: () {
+                                    onTap: () async {
                                       chatRoomID = getChatRoomID(
                                           myUserName!, user['user_name']);
+                                      QuerySnapshot data =
+                                          await DatabaseManager()
+                                              .getUserInfo(user['user_name']);
+                                      chatWithName = data.docs[0]['name'];
+                                      chatWithUserName =
+                                          data.docs[0]['user_name'];
+                                      chatWithUserProfile =
+                                          data.docs[0]['profile_url'];
+
                                       Map<String, dynamic> chatRoomInfo = {
-                                        'users': [myUserName, user['user_name']]
+                                        'users': [
+                                          myUserName,
+                                          user['user_name'],
+                                        ],
+                                        'from_user': [
+                                          myName,
+                                          myProfile,
+                                          myUserName,
+                                        ],
+                                        'to_user': [
+                                          chatWithName,
+                                          chatWithUserProfile,
+                                          chatWithUserName,
+                                        ],
                                       };
                                       DatabaseManager()
                                           .createChatRoom(
@@ -210,14 +236,70 @@ class _HomeScreenState extends State<HomeScreen> {
                                       (snapshot.data as QuerySnapshot)
                                           .docs[index];
 
-                                  return RecentMessageTile(
-                                    myUserName: myUserName,
-                                    lastMessage: currentMessage['lastMessage'],
-                                    lastMessageTime: timeago.format(
-                                      currentMessage['lastMessageTime']
-                                          .toDate(),
+                                  // return RecentMessageTile(
+                                  //   myUserName: myUserName,
+                                  //   lastMessage: currentMessage['lastMessage'],
+                                  // lastMessageTime: timeago.format(
+                                  //   currentMessage['lastMessageTime']
+                                  //       .toDate(),
+                                  //   ),
+                                  //   chatRoomID: currentMessage.id,
+                                  // );
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Get.to(
+                                        () => MessageScreen(
+                                          chatWithName: chatWithName!,
+                                          chatWithUserName:
+                                              currentMessage['to_user'][2]!,
+                                          chatWithUserProfile:
+                                              currentMessage['to_user'][1],
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      child: Card(
+                                        elevation: 2,
+                                        child: ListTile(
+                                          leading: chatWithUserProfile != ""
+                                              ? CircleAvatar(
+                                                  radius: 30.0,
+                                                  backgroundImage: NetworkImage(
+                                                      "${currentMessage['to_user'][1]}"),
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                )
+                                              : CircleAvatar(
+                                                  radius: 30.0,
+                                                  backgroundColor: BLAKISH,
+                                                ),
+                                          title: Text(
+                                              "${currentMessage['to_user'][0]}"),
+                                          subtitle: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  "${currentMessage['lastMessage']}",
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              Flexible(
+                                                child: Text(
+                                                  "${timeago.format(currentMessage['lastMessageTime'].toDate())}",
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    chatRoomID: currentMessage.id,
                                   );
                                 })
                             : Container(
@@ -240,94 +322,94 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class RecentMessageTile extends StatefulWidget {
-  const RecentMessageTile({
-    Key? key,
-    required this.myUserName,
-    required this.lastMessage,
-    required this.lastMessageTime,
-    required this.chatRoomID,
-  }) : super(key: key);
+// class RecentMessageTile extends StatefulWidget {
+//   const RecentMessageTile({
+//     Key? key,
+//     required this.myUserName,
+//     required this.lastMessage,
+//     required this.lastMessageTime,
+//     required this.chatRoomID,
+//   }) : super(key: key);
 
-  final String? myUserName;
-  final String lastMessage;
-  final lastMessageTime;
-  final String chatRoomID;
+//   final String? myUserName;
+//   final String lastMessage;
+//   final lastMessageTime;
+//   final String chatRoomID;
 
-  @override
-  _RecentMessageTileState createState() => _RecentMessageTileState();
-}
+//   @override
+//   _RecentMessageTileState createState() => _RecentMessageTileState();
+// }
 
-class _RecentMessageTileState extends State<RecentMessageTile> {
-  String? chatWithUserName;
-  String? chatWithName;
-  String chatWithUserProfile = "";
+// class _RecentMessageTileState extends State<RecentMessageTile> {
+//   String? chatWithUserName;
+//   String? chatWithName;
+//   String chatWithUserProfile = "";
 
-  getUserInfo() async {
-    chatWithUserName = widget.chatRoomID
-        .replaceAll(widget.myUserName!, "")
-        .replaceAll("_", "");
-    QuerySnapshot data = await DatabaseManager().getUserInfo(chatWithUserName!);
-    chatWithName = data.docs[0]['name'];
-    chatWithUserProfile = data.docs[0]['profile_url'];
-    setState(() {});
-  }
+// getUserInfo() async {
+//   chatWithUserName = widget.chatRoomID
+//       .replaceAll(widget.myUserName!, "")
+//       .replaceAll("_", "");
+//   QuerySnapshot data = await DatabaseManager().getUserInfo(chatWithUserName!);
+//   chatWithName = data.docs[0]['name'];
+//   chatWithUserProfile = data.docs[0]['profile_url'];
+//   setState(() {});
+// }
 
-  @override
-  void initState() {
-    super.initState();
-    getUserInfo();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     getUserInfo();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Get.to(
-          () => MessageScreen(
-            chatWithName: chatWithName!,
-            chatWithUserName: chatWithUserName!,
-            chatWithUserProfile: chatWithUserProfile,
-          ),
-        );
-      },
-      child: Container(
-        child: Card(
-          elevation: 2,
-          child: ListTile(
-            leading: chatWithUserProfile != ""
-                ? CircleAvatar(
-                    radius: 30.0,
-                    backgroundImage: NetworkImage("$chatWithUserProfile"),
-                    backgroundColor: Colors.transparent,
-                  )
-                : CircleAvatar(
-                    radius: 30.0,
-                    backgroundColor: BLAKISH,
-                  ),
-            title: Text(chatWithName ?? "Loading . . ."),
-            subtitle: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    "${widget.lastMessage}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Flexible(
-                  child: Text(
-                    "${widget.lastMessageTime}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: () {
+//         Get.to(
+//           () => MessageScreen(
+//             chatWithName: chatWithName!,
+//             chatWithUserName: chatWithUserName!,
+//             chatWithUserProfile: chatWithUserProfile,
+//           ),
+//         );
+//       },
+//       child: Container(
+//         child: Card(
+//           elevation: 2,
+//           child: ListTile(
+//             leading: chatWithUserProfile != ""
+//                 ? CircleAvatar(
+//                     radius: 30.0,
+//                     backgroundImage: NetworkImage("$chatWithUserProfile"),
+//                     backgroundColor: Colors.transparent,
+//                   )
+//                 : CircleAvatar(
+//                     radius: 30.0,
+//                     backgroundColor: BLAKISH,
+//                   ),
+//             title: Text(chatWithName ?? "Loading . . ."),
+//             subtitle: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 Flexible(
+//                   child: Text(
+//                     "${widget.lastMessage}",
+//                     maxLines: 1,
+//                     overflow: TextOverflow.ellipsis,
+//                   ),
+//                 ),
+//                 Flexible(
+//                   child: Text(
+//                     "${widget.lastMessageTime}",
+//                     maxLines: 1,
+//                     overflow: TextOverflow.ellipsis,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
