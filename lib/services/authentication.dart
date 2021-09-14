@@ -49,6 +49,7 @@ class Authentication {
             .replaceAll("@", "_")
             .replaceAll(".", "_"),
         "profile_url": userDetails.photoURL,
+        "status": "Online",
       };
 
       DatabaseManager().storeUserInfo(userDetails.uid, userInfo).then((value) {

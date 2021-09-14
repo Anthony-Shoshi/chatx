@@ -15,8 +15,9 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with WidgetsBindingObserver {
   String myid = "";
+  String phoneStatus = "";
 
   void gotoNext() async {
     myid = await SharedPrefManager().getUserID();
@@ -31,8 +32,25 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    gotoNext();
-    super.initState();
+    //gotoNext();
+    WidgetsBinding.instance!.addObserver(this);
+    super.initState();    
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();    
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // TODO: implement didChangeAppLifecycleState
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed)
+      print("update status as online");
+    else
+      print("update status as offline");
   }
 
   @override
