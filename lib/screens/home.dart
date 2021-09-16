@@ -307,7 +307,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     onTap: () {
                                       Get.to(
                                         () => MessageScreen(
-                                          chatWithName: chatWithName!,
+                                          chatWithName:
+                                              currentMessage['to_user'][0]!,
                                           chatWithUserName:
                                               currentMessage['to_user'][2]!,
                                           chatWithUserProfile:

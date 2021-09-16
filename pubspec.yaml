@@ -33,6 +33,7 @@ dependencies:
   shared_preferences: ^2.0.7
   random_string: ^2.3.1
   timeago: ^3.1.0
+  emoji_picker_flutter:
   
 
 
@@ -50,7 +51,13 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
-
+  plugin:
+      platforms:
+        android:
+          package: com.fintays.emoji_picker_flutter
+          pluginClass: EmojiPickerFlutterPlugin
+        ios:
+          pluginClass: EmojiPickerFlutterPlugin
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
