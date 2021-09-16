@@ -10,8 +10,8 @@ class Authentication {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
-  getCurrentUser() async {
-    return await _firebaseAuth.currentUser;
+  getCurrentUser() {
+    return _firebaseAuth.currentUser;
   }
 
   signUpWithGoogle() async {

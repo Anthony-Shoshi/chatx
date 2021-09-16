@@ -17,8 +17,9 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Stream? recommendedUsers, currentMessages;
+  String? myID;
   String? myName;
   String? myUserName;
   String? myEmail;
@@ -27,11 +28,42 @@ class _HomeScreenState extends State<HomeScreen> {
   String? chatWithName;
   String? chatWithUserName;
   String? chatWithUserProfile;
+  String? chatWithUserID;
 
   @override
   void initState() {
     onInitLoad();
+    WidgetsBinding.instance!.addObserver(this);
+    String mid = Authentication().getCurrentUser().uid;
+    Map<String, dynamic> statusInfo = {
+      'status': 'Online',
+    };
+    DatabaseManager().updateOnlineStatus(mid, statusInfo);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance!.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    String mid = Authentication().getCurrentUser().uid;
+    Map<String, dynamic> statusInfo = {};
+    if (state == AppLifecycleState.resumed) {
+      statusInfo = {
+        'status': 'Online',
+      };
+    } else {
+      statusInfo = {
+        'status': 'Offline',
+      };
+    }
+
+    DatabaseManager().updateOnlineStatus(mid, statusInfo);
   }
 
   onInitLoad() async {
@@ -50,6 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   getMyInfo() async {
+    myID = await SharedPrefManager().getUserID();
     myName = await SharedPrefManager().getUserDisplayName();
     myUserName = await SharedPrefManager().getUserName();
     myEmail = await SharedPrefManager().getUserEmail();
@@ -68,8 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         title: Text("ChatX"),
@@ -100,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Container(
-                height: screenWidth / 3.5,
+                height: screenSize / 7.5,
                 child: StreamBuilder(
                   stream: recommendedUsers,
                   builder: (context, snapshot) {
@@ -128,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           data.docs[0]['user_name'];
                                       chatWithUserProfile =
                                           data.docs[0]['profile_url'];
+                                      chatWithUserID = data.docs[0]['user_id'];
 
                                       Map<String, dynamic> chatRoomInfo = {
                                         'users': [
@@ -138,11 +170,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                           myName,
                                           myProfile,
                                           myUserName,
+                                          myID,
                                         ],
                                         'to_user': [
                                           chatWithName,
                                           chatWithUserProfile,
                                           chatWithUserName,
+                                          chatWithUserID,
                                         ],
                                       };
                                       DatabaseManager()
@@ -156,12 +190,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 chatWithUserProfile:
                                                     user['profile_url'],
                                                 chatWithName: user['name'],
+                                                userId: user['user_id'],
                                               ),
                                             ),
                                           );
                                     },
                                     child: Container(
-                                      width: screenHeight / 10,
+                                      width: screenSize / 11,
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 5.0,
@@ -169,17 +204,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         child: Column(
                                           children: [
-                                            Container(
-                                              height: 60.0,
-                                              width: 60.0,
-                                              decoration: BoxDecoration(
-                                                image: DecorationImage(
-                                                  image: NetworkImage(
-                                                      user['profile_url']),
+                                            Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                Container(
+                                                  height: screenSize / 15,
+                                                  width: screenSize / 15,
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      image: NetworkImage(
+                                                          user['profile_url']),
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            5.0),
+                                                  ),
                                                 ),
-                                                borderRadius:
-                                                    BorderRadius.circular(5.0),
-                                              ),
+                                                Positioned(
+                                                  right: -5.0,
+                                                  bottom: -3.0,
+                                                  child: Container(
+                                                    height: 10.0,
+                                                    width: 10.0,
+                                                    decoration: BoxDecoration(
+                                                      color: user['status'] ==
+                                                              'Online'
+                                                          ? Colors.green[400]
+                                                          : Colors.grey[400],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             Padding(
                                               padding:
@@ -254,6 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               currentMessage['to_user'][2]!,
                                           chatWithUserProfile:
                                               currentMessage['to_user'][1],
+                                          userId: currentMessage['to_user'][3],
                                         ),
                                       );
                                     },

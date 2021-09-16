@@ -10,12 +10,13 @@ import 'package:get/get.dart';
 import 'package:random_string/random_string.dart';
 
 class MessageScreen extends StatefulWidget {
-  final String chatWithName, chatWithUserName, chatWithUserProfile;
+  final String chatWithName, chatWithUserName, chatWithUserProfile, userId;
   const MessageScreen(
       {Key? key,
       required this.chatWithUserName,
       required this.chatWithUserProfile,
-      required this.chatWithName})
+      required this.chatWithName,
+      required this.userId})
       : super(key: key);
 
   @override
@@ -24,7 +25,7 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   TextEditingController _message = TextEditingController();
-  Stream? messages;
+  Stream? messages, userStatus;
   String? myName;
   String? myUserName;
   String? myProfile;
@@ -48,6 +49,7 @@ class _MessageScreenState extends State<MessageScreen> {
       widget.chatWithUserName,
     );
 
+    getUserStatus();
     getMessages();
   }
 
@@ -57,6 +59,63 @@ class _MessageScreenState extends State<MessageScreen> {
     } else {
       return "$b\_$a";
     }
+  }
+
+  getUserStatus() async {
+    userStatus = await DatabaseManager().getUserStatus(widget.userId);
+    setState(() {});
+  }
+
+  Widget appBarWidget() {
+    return StreamBuilder(
+      stream: userStatus,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          DocumentSnapshot data = (snapshot.data as QuerySnapshot).docs[0];
+          //print(data['status']);
+          return Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    bottom: -2.0,
+                    right: 0.0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10.0),
+                      child: Container(
+                        height: 10.0,
+                        width: 10.0,
+                        color: data['status'] == 'Online'
+                            ? Colors.green[300]
+                            : Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                  CircleAvatar(
+                    radius: 20.0,
+                    backgroundImage:
+                        NetworkImage("${widget.chatWithUserProfile}"),
+                    backgroundColor: Colors.transparent,
+                  ),
+                ],
+              ),
+              SizedBox(
+                width: 5.0,
+              ),
+              Flexible(
+                child: Text(
+                  "${widget.chatWithName}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          );
+        } else
+          return Container();
+      },
+    );
   }
 
   getMessages() async {
@@ -103,25 +162,7 @@ class _MessageScreenState extends State<MessageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 20.0,
-              backgroundImage: NetworkImage("${widget.chatWithUserProfile}"),
-              backgroundColor: Colors.transparent,
-            ),
-            SizedBox(
-              width: 5.0,
-            ),
-            Flexible(
-              child: Text(
-                "${widget.chatWithName}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        title: appBarWidget(),
         actions: [
           IconButton(
             onPressed: () {

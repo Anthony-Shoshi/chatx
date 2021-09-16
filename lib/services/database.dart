@@ -56,6 +56,17 @@ class DatabaseManager {
         .update(lastMessageInfo);
   }
 
+  updateOnlineStatus(String uid, Map<String, dynamic> status) {
+    FirebaseFirestore.instance.collection('users').doc(uid).update(status);
+  }
+
+  Future<Stream<QuerySnapshot>> getUserStatus(String uid) async {
+    return await FirebaseFirestore.instance
+        .collection('users')
+        .where('user_id', isEqualTo: uid)
+        .snapshots();
+  }
+
   Future createChatRoom(
       String? chatRoomID, Map<String, dynamic> chatRoomInfo) async {
     var snapshot = await FirebaseFirestore.instance
