@@ -50,6 +50,7 @@ class Authentication {
             .replaceAll(".", "_"),
         "profile_url": userDetails.photoURL,
         "status": "Online",
+        "isTyping": false,
       };
 
       DatabaseManager().storeUserInfo(userDetails.uid, userInfo).then((value) {

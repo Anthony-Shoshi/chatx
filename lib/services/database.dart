@@ -60,8 +60,22 @@ class DatabaseManager {
     FirebaseFirestore.instance.collection('users').doc(uid).update(status);
   }
 
+  updateTypingStatus(String uid, Map<String, dynamic> typingStatus) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .update(typingStatus);
+  }
+
   Future<Stream<QuerySnapshot>> getUserStatus(String uid) async {
-    return await FirebaseFirestore.instance
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('user_id', isEqualTo: uid)
+        .snapshots();
+  }
+
+  Future<Stream<QuerySnapshot>> getTypingStatus(String uid) async {
+    return FirebaseFirestore.instance
         .collection('users')
         .where('user_id', isEqualTo: uid)
         .snapshots();

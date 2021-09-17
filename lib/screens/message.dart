@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:chatx/constants/colors.dart';
 import 'package:chatx/helpers/shared_pref_manager.dart';
 import 'package:chatx/screens/sign_up.dart';
@@ -27,7 +29,8 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   TextEditingController _message = TextEditingController();
-  Stream? messages, userStatus;
+  Stream? messages, userStatus, typingStatus;
+  late String myUID;
   String? myName;
   String? myUserName;
   String? myProfile;
@@ -44,6 +47,7 @@ class _MessageScreenState extends State<MessageScreen> {
   }
 
   getMyInfo() async {
+    myUID = await SharedPrefManager().getUserID();
     myName = await SharedPrefManager().getUserDisplayName();
     myUserName = await SharedPrefManager().getUserName();
     myEmail = await SharedPrefManager().getUserEmail();
@@ -54,7 +58,13 @@ class _MessageScreenState extends State<MessageScreen> {
     );
 
     getUserStatus();
+    getTypingStatus();
     getMessages();
+  }
+
+  getTypingStatus() async {
+    typingStatus = await DatabaseManager().getUserStatus(widget.userId);
+    setState(() {});
   }
 
   getChatIDByName(String a, String b) {
@@ -70,11 +80,22 @@ class _MessageScreenState extends State<MessageScreen> {
     setState(() {});
   }
 
-  _onEmojiSelected(Emoji emoji) {
+  _onEmojiSelected(Emoji emoji) async {
     _message
       ..text += emoji.emoji
       ..selection = TextSelection.fromPosition(
           TextPosition(offset: _message.text.length));
+    Map<String, dynamic> typingStatus = {};
+    if (_message.text.length > 0) {
+      typingStatus = {
+        "isTyping": true,
+      };
+    } else {
+      typingStatus = {
+        "isTyping": false,
+      };
+    }
+    await DatabaseManager().updateTypingStatus(myUID, typingStatus);
   }
 
   _onBackspacePressed() {
@@ -83,6 +104,38 @@ class _MessageScreenState extends State<MessageScreen> {
       ..selection = TextSelection.fromPosition(
         TextPosition(offset: _message.text.length),
       );
+  }
+
+  Widget typingWidget() {
+    return StreamBuilder(
+      stream: typingStatus,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          DocumentSnapshot data = (snapshot.data as QuerySnapshot).docs[0];
+          return data['isTyping']
+              ? DefaultTextStyle(
+                  style: const TextStyle(
+                    fontSize: 15.0,
+                    color: Colors.black,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: AnimatedTextKit(
+                      animatedTexts: [
+                        WavyAnimatedText('Typing . . .'),
+                      ],
+                      isRepeatingAnimation: true,
+                      onTap: () {
+                        print("Tap Event");
+                      },
+                    ),
+                  ),
+                )
+              : Container();
+        } else
+          return Container();
+      },
+    );
   }
 
   Widget appBarWidget() {
@@ -171,15 +224,34 @@ class _MessageScreenState extends State<MessageScreen> {
             .then((value) {
           messageID = "";
           _message.text = "";
+        }).then((value) {
+          Map<String, dynamic> typingStatus = {
+            "isTyping": false,
+          };
+          DatabaseManager().updateTypingStatus(myUID, typingStatus);
         });
       });
     }
   }
 
+  void _onTextChanged(String value) async {
+    Map<String, dynamic> typingStatus = {};
+    if (value != "") {
+      typingStatus = {
+        "isTyping": true,
+      };
+    } else {
+      typingStatus = {
+        "isTyping": false,
+      };
+    }
+    await DatabaseManager().updateTypingStatus(myUID, typingStatus);
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () {
+      onWillPop: () async {
         if (_showEmoji) {
           setState(() {
             _showEmoji = false;
@@ -187,6 +259,10 @@ class _MessageScreenState extends State<MessageScreen> {
         } else {
           Navigator.pop(context);
         }
+        Map<String, dynamic> typingStatus = {
+          "isTyping": false,
+        };
+        await DatabaseManager().updateTypingStatus(myUID, typingStatus);
         return Future.value(false);
       },
       child: Scaffold(
@@ -230,6 +306,33 @@ class _MessageScreenState extends State<MessageScreen> {
                                     DocumentSnapshot data =
                                         (snapshot.data as QuerySnapshot)
                                             .docs[index];
+
+                                    //parsing date time from firebase
+                                    final dateTime = DateTime.parse(
+                                        data['message_time']
+                                            .toDate()
+                                            .toString());
+
+                                    //init variable
+                                    DateFormat format;
+
+                                    //Compare date time
+                                    DateTime date = DateTime.now();
+
+                                    bool isToday = false;
+
+                                    if (date.day == dateTime.day &&
+                                        date.month == dateTime.month &&
+                                        date.year == dateTime.year) {
+                                      format = DateFormat('hh:mm a');
+                                      isToday = true;
+                                    } else {
+                                      format =
+                                          DateFormat('d MMM, y AT hh:mm a');
+                                      isToday = false;
+                                    }
+
+                                    final clockString = format.format(dateTime);
                                     return Container(
                                       margin: EdgeInsets.symmetric(
                                           vertical: 8.0, horizontal: 10.0),
@@ -275,16 +378,27 @@ class _MessageScreenState extends State<MessageScreen> {
                                                       : TextAlign.left,
                                             ),
                                             SizedBox(height: 5.0),
-                                            Text(
-                                              "${DateTime.parse(data['message_time'].toDate().toString())}",
-                                              style: TextStyle(
-                                                  fontSize: 12.0,
-                                                  color: Colors.black),
-                                              textAlign:
-                                                  data['sendBy'] == myUserName
-                                                      ? TextAlign.right
-                                                      : TextAlign.left,
-                                            ),
+                                            isToday
+                                                ? Text(
+                                                    "Today AT $clockString",
+                                                    style: TextStyle(
+                                                        fontSize: 12.0,
+                                                        color: Colors.black),
+                                                    textAlign: data['sendBy'] ==
+                                                            myUserName
+                                                        ? TextAlign.right
+                                                        : TextAlign.left,
+                                                  )
+                                                : Text(
+                                                    "$clockString",
+                                                    style: TextStyle(
+                                                        fontSize: 12.0,
+                                                        color: Colors.black),
+                                                    textAlign: data['sendBy'] ==
+                                                            myUserName
+                                                        ? TextAlign.right
+                                                        : TextAlign.left,
+                                                  ),
                                           ],
                                         ),
                                       ),
@@ -302,10 +416,11 @@ class _MessageScreenState extends State<MessageScreen> {
                     }),
               ),
             ),
+            typingWidget(),
             Container(
               alignment: Alignment.bottomCenter,
               padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-              color: Colors.grey,
+              color: Colors.grey[300],
               child: Row(
                 children: [
                   !_showEmoji
@@ -333,6 +448,7 @@ class _MessageScreenState extends State<MessageScreen> {
                         ),
                   Expanded(
                     child: TextField(
+                      onChanged: _onTextChanged,
                       focusNode: inputNode,
                       controller: _message,
                       decoration: InputDecoration(

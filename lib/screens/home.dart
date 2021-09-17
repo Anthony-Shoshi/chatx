@@ -306,58 +306,127 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   return GestureDetector(
                                     onTap: () {
                                       Get.to(
-                                        () => MessageScreen(
-                                          chatWithName:
-                                              currentMessage['to_user'][0]!,
-                                          chatWithUserName:
-                                              currentMessage['to_user'][2]!,
-                                          chatWithUserProfile:
-                                              currentMessage['to_user'][1],
-                                          userId: currentMessage['to_user'][3],
-                                        ),
+                                        () => currentMessage['to_user'][2] !=
+                                                myUserName
+                                            ? MessageScreen(
+                                                chatWithName:
+                                                    currentMessage['to_user']
+                                                        [0]!,
+                                                chatWithUserName:
+                                                    currentMessage['to_user']
+                                                        [2]!,
+                                                chatWithUserProfile:
+                                                    currentMessage['to_user']
+                                                        [1],
+                                                userId:
+                                                    currentMessage['to_user']
+                                                        [3],
+                                              )
+                                            : MessageScreen(
+                                                chatWithName:
+                                                    currentMessage['from_user']
+                                                        [0]!,
+                                                chatWithUserName:
+                                                    currentMessage['from_user']
+                                                        [2]!,
+                                                chatWithUserProfile:
+                                                    currentMessage['from_user']
+                                                        [1],
+                                                userId:
+                                                    currentMessage['from_user']
+                                                        [3],
+                                              ),
                                       );
                                     },
                                     child: Container(
                                       child: Card(
                                         elevation: 2,
-                                        child: ListTile(
-                                          leading: chatWithUserProfile != ""
-                                              ? CircleAvatar(
-                                                  radius: 30.0,
-                                                  backgroundImage: NetworkImage(
-                                                      "${currentMessage['to_user'][1]}"),
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                )
-                                              : CircleAvatar(
-                                                  radius: 30.0,
-                                                  backgroundColor: BLAKISH,
+                                        child: currentMessage['to_user'][2] !=
+                                                myUserName
+                                            ? ListTile(
+                                                leading: chatWithUserProfile !=
+                                                        ""
+                                                    ? CircleAvatar(
+                                                        radius: 30.0,
+                                                        backgroundImage:
+                                                            NetworkImage(
+                                                                "${currentMessage['to_user'][1]}"),
+                                                        backgroundColor:
+                                                            Colors.transparent,
+                                                      )
+                                                    : CircleAvatar(
+                                                        radius: 30.0,
+                                                        backgroundColor:
+                                                            BLAKISH,
+                                                      ),
+                                                title: Text(
+                                                    "${currentMessage['to_user'][0]}"),
+                                                subtitle: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        "${currentMessage['lastMessage']}",
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        "${timeago.format(currentMessage['lastMessageTime'].toDate())}",
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                          title: Text(
-                                              "${currentMessage['to_user'][0]}"),
-                                          subtitle: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  "${currentMessage['lastMessage']}",
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                              )
+                                            : ListTile(
+                                                leading: chatWithUserProfile !=
+                                                        ""
+                                                    ? CircleAvatar(
+                                                        radius: 30.0,
+                                                        backgroundImage:
+                                                            NetworkImage(
+                                                                "${currentMessage['from_user'][1]}"),
+                                                        backgroundColor:
+                                                            Colors.transparent,
+                                                      )
+                                                    : CircleAvatar(
+                                                        radius: 30.0,
+                                                        backgroundColor:
+                                                            BLAKISH,
+                                                      ),
+                                                title: Text(
+                                                    "${currentMessage['from_user'][0]}"),
+                                                subtitle: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        "${currentMessage['lastMessage']}",
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        "${timeago.format(currentMessage['lastMessageTime'].toDate())}",
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                              Flexible(
-                                                child: Text(
-                                                  "${timeago.format(currentMessage['lastMessageTime'].toDate())}",
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   );
