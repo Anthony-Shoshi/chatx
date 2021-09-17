@@ -58,14 +58,14 @@ class _MessageScreenState extends State<MessageScreen> {
     );
 
     getUserStatus();
-    getTypingStatus();
+    //getTypingStatus();
     getMessages();
   }
 
-  getTypingStatus() async {
-    typingStatus = await DatabaseManager().getUserStatus(widget.userId);
-    setState(() {});
-  }
+  // getTypingStatus() async {
+  //   typingStatus = await DatabaseManager().getUserStatus(chatRoomID!);
+  //   setState(() {});
+  // }
 
   getChatIDByName(String a, String b) {
     if (a.codeUnitAt(0) > b.codeUnitAt(0)) {
@@ -88,14 +88,14 @@ class _MessageScreenState extends State<MessageScreen> {
     Map<String, dynamic> typingStatus = {};
     if (_message.text.length > 0) {
       typingStatus = {
-        "isTyping": true,
+        '${myUserName}_typing': true,
       };
     } else {
       typingStatus = {
-        "isTyping": false,
+        '${myUserName}_typing': false,
       };
     }
-    await DatabaseManager().updateTypingStatus(myUID, typingStatus);
+    await DatabaseManager().updateTypingStatus(chatRoomID!, typingStatus);
   }
 
   _onBackspacePressed() {
@@ -108,11 +108,14 @@ class _MessageScreenState extends State<MessageScreen> {
 
   Widget typingWidget() {
     return StreamBuilder(
-      stream: typingStatus,
-      builder: (context, snapshot) {
+      stream: FirebaseFirestore.instance
+          .collection('chatrooms')
+          .doc(chatRoomID)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasData) {
-          DocumentSnapshot data = (snapshot.data as QuerySnapshot).docs[0];
-          return data['isTyping']
+          var typingData = snapshot.data;
+          return typingData!['${widget.chatWithUserName}_typing']
               ? DefaultTextStyle(
                   style: const TextStyle(
                     fontSize: 15.0,
@@ -125,9 +128,6 @@ class _MessageScreenState extends State<MessageScreen> {
                         WavyAnimatedText('Typing . . .'),
                       ],
                       isRepeatingAnimation: true,
-                      onTap: () {
-                        print("Tap Event");
-                      },
                     ),
                   ),
                 )
@@ -226,9 +226,9 @@ class _MessageScreenState extends State<MessageScreen> {
           _message.text = "";
         }).then((value) {
           Map<String, dynamic> typingStatus = {
-            "isTyping": false,
+            '${myUserName}_typing': false,
           };
-          DatabaseManager().updateTypingStatus(myUID, typingStatus);
+          DatabaseManager().updateTypingStatus(chatRoomID!, typingStatus);
         });
       });
     }
@@ -238,14 +238,14 @@ class _MessageScreenState extends State<MessageScreen> {
     Map<String, dynamic> typingStatus = {};
     if (value != "") {
       typingStatus = {
-        "isTyping": true,
+        '${myUserName}_typing': true,
       };
     } else {
       typingStatus = {
-        "isTyping": false,
+        '${myUserName}_typing': false,
       };
     }
-    await DatabaseManager().updateTypingStatus(myUID, typingStatus);
+    await DatabaseManager().updateTypingStatus(chatRoomID!, typingStatus);
   }
 
   @override

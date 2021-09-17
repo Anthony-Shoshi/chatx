@@ -178,6 +178,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           chatWithUserName,
                                           chatWithUserID,
                                         ],
+                                        '${myUserName}_typing': false,
+                                        '${chatWithUserName}_typing': false,
                                       };
                                       DatabaseManager()
                                           .createChatRoom(

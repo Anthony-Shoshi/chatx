@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class DatabaseManager {
   Future storeUserInfo(String userID, Map<String, dynamic> userInfo) async {
@@ -60,10 +61,10 @@ class DatabaseManager {
     FirebaseFirestore.instance.collection('users').doc(uid).update(status);
   }
 
-  updateTypingStatus(String uid, Map<String, dynamic> typingStatus) {
+  updateTypingStatus(String chatRoomID, Map<String, dynamic> typingStatus) {
     FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
+        .collection('chatrooms')
+        .doc(chatRoomID)
         .update(typingStatus);
   }
 
@@ -74,12 +75,12 @@ class DatabaseManager {
         .snapshots();
   }
 
-  Future<Stream<QuerySnapshot>> getTypingStatus(String uid) async {
-    return FirebaseFirestore.instance
-        .collection('users')
-        .where('user_id', isEqualTo: uid)
-        .snapshots();
-  }
+  // Future<Stream<DocumentSnapshot>> getTypingStatus(String chatroomid) async {
+  //   return FirebaseFirestore.instance
+  //       .collection('chatrooms')
+  //       .doc(chatroomid)
+  //       .snapshots();
+  // }
 
   Future createChatRoom(
       String? chatRoomID, Map<String, dynamic> chatRoomInfo) async {
